@@ -4,6 +4,14 @@ Scrapes the powers from SICK and turns them into JSON
 from bs4 import BeautifulSoup
 import argparse
 import json
+import re
+
+def get_valid_filename(s):
+    """
+    Turns a given string into a safe filename string
+    """
+    s = str(s).strip().replace(' ', '_').lower()
+    return re.sub(r'(?u)[^-\w.]', '', s)
 
 parser=argparse.ArgumentParser(description="Turn HTML SICK into JSON of cards.")
 parser.add_argument("--discard_unique", help="Do not include the original Spirit for Unique Powers.", action="store_true")
@@ -51,7 +59,7 @@ for card in card_backs:
     power_json["description"] = strings[8]
     power_json["artist"] = strings[9]
 
-    filename = f"powers/{power_json['name']}.json"
+    filename = f"powers/{get_valid_filename(power_json['name'])}.json"
     # save json of power
     out_file = open(filename, "w")
     json.dump(power_json, out_file)
