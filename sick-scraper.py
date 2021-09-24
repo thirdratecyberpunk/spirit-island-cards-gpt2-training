@@ -16,6 +16,7 @@ def get_valid_filename(s):
 parser=argparse.ArgumentParser(description="Turn HTML SICK into JSON of cards.")
 parser.add_argument("--discard_unique", help="Do not include the original Spirit for Unique Powers.", action="store_true")
 parser.add_argument("--discard_set", help="Do not include the set in the JSON.", action="store_true")
+parser.add_argument("--single_file", help="Outputs a single delimited file containing all powers.", action="store_true")
 args = parser.parse_args()
 
 # finding all the div-back elements
@@ -26,6 +27,9 @@ with open("sick-powers.html") as f:
 soup.prettify()
 card_backs = soup.findAll("div", class_="back")
 # rewriting the cards as a JSON structure
+
+if args.single_file:
+    powers = []
 
 for card in card_backs:
     # get and clean the html versions of the power
@@ -60,6 +64,16 @@ for card in card_backs:
     power_json["artist"] = strings[9]
 
     filename = f"powers/{get_valid_filename(power_json['name'])}.json"
-    # save json of power
-    out_file = open(filename, "w")
-    json.dump(power_json, out_file)
+    if not args.single_file:
+        out_file = open(filename, "w")
+        json.dump(power_json, out_file)
+    else:
+        powers.append(power_json)
+        powers.append("<|endoftext|>")
+
+# saving results to a single delimited file if selected
+if args.single_file:
+    with open("combined_powers.txt", "w") as f:
+        for line in powers:
+            f.write(str(line))
+            f.write("\n")
