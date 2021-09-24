@@ -2,7 +2,13 @@
 Scrapes the powers from SICK and turns them into JSON
 """
 from bs4 import BeautifulSoup
+import argparse
 import json
+
+parser=argparse.ArgumentParser(description="Turn HTML SICK into JSON of cards.")
+parser.add_argument("--discard_unique", help="Do not include the original Spirit for Unique Powers.", action="store_true")
+parser.add_argument("--discard_set", help="Do not include the set in the JSON.", action="store_true")
+args = parser.parse_args()
 
 # finding all the div-back elements
 with open("sick-powers.html") as f:
@@ -29,9 +35,14 @@ for card in card_backs:
         strings.insert(5, "None")
 
     # populate json of power
-    power_json["set"] = strings[0]
+    if not args.discard_set:
+        power_json["set"] = strings[0]
     power_json["name"] = strings[2]
-    power_json["type"] = strings[1]
+    # removes the origin spirit for unique powers if this option is toggled
+    if args.discard_unique and ":" in strings[1]:
+        power_json["type"] = "Unique Power"
+    else:
+        power_json["type"] = strings[1]
     power_json["cost"] = strings[3]
     power_json["speed"] = strings[4]
     power_json["range"] = strings[5]
